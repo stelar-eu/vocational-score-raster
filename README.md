@@ -195,11 +195,11 @@ A prompt will appear asking for `username` and `password`. The credentials **are
 
 After that your local Docker Account is set up!
 
-## Modify template up to Tool prerequisitesies
+## Modify template up to Tool prerequisites
 
 Now you are ready to start embedding your tool into the template. The files that need to be modified are :
 
-- `main.py` as explained above in the **Directory Structure** structure. Explanative comments are also available inside the script
+- `main.py` as explained above in the **Directory Structure** section. Explanative comments are also available inside the script
 - `requirements.txt` recording your tool python library names 
 - `Makefile` with your appropriate **docker hub repository** and **image name**.
 
