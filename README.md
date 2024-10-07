@@ -1,5 +1,7 @@
 # Welcome to the KLMS Tool Template
 
+<img src="https://raw.githubusercontent.com/stelar-eu/klms-tool-template/6ae269541537c39236d55a645bd27f1b167bec08/logo.png" alt="Stelar Tool Template" width="150"/>
+
 Here you may find a lightweight and easy to use template that can encapsulate any data analysis and interlinking tools ready to run inside the KLMS Cluster. 
 
 
