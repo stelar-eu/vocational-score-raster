@@ -66,7 +66,7 @@ if __name__='__main__':
     write to sys.argv[2]	
 ```
 
-`run(json)` method has an **argument** `json` and **must return** a result in JSON form as shown below at `sys.argv[1]`.
+`run(json)` method has an **argument** `json` and **must return** a result in JSON form as shown below at `sys.argv[2]`.
 
 As mentioned earlier, the program requires certain **arguments** to effectively receive and provide data/parameters necessary for tool execution. These arguments are provided by the `run.sh` wrapper script, and their presence during runtime can be assumed as a given.
 
