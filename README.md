@@ -222,9 +222,3 @@ The `Makefile` will handle all the complicated steps needed to build the image a
 
 ## Great! Your tool is now published
 Thanks for your effort! Your tool is now ready to be integrated inside the KLMS cluster.
-
-
-## Development Template
-
-### Work in progress
-Since this template is focused on running the tools inside Kubernetes Jobs as part of the KLMS cluster we understand **that the development and debugging process may not be easy**. Having that in mind we are planning on releasing a template that will allow local execution on your machine. The link will be appended here shortly...
