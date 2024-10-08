@@ -175,6 +175,13 @@ sudo apt install docker docker.io
 sudo apt install build-essential
 ```
 
+### Windows? No problem!
+
+You may find detailed instructions in the links down below:
+
+[Install Docker in Windows](https://www.simplilearn.com/tutorials/docker-tutorial/install-docker-on-windows)
+
+[Install Make (used to run the Makefile) in Windows](https://stackoverflow.com/questions/32127524/how-to-install-and-use-make-in-windows)
 
 ## Your free copy to take home!
 You may fetch this template to modify it locally by running the following `git clone` in your desired location:
