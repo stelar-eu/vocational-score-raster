@@ -179,6 +179,8 @@ sudo apt install build-essential
 
 You may find detailed instructions in the links down below:
 
+[Install Git in Windows](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git#:~:text=Installing%20on%20Windows)
+
 [Install Docker in Windows](https://www.simplilearn.com/tutorials/docker-tutorial/install-docker-on-windows)
 
 [Install Make (used to run the Makefile) in Windows](https://stackoverflow.com/questions/32127524/how-to-install-and-use-make-in-windows)
