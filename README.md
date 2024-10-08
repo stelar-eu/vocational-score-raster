@@ -4,6 +4,8 @@
 
 Here you may find a lightweight and easy to use template that can encapsulate any data analysis and interlinking tools ready to run inside the KLMS Cluster. 
 
+> This template is made for tools written in **Python**. Other language templates may also be implemented following this paradigm.
+
 
 # Directory Structure
 
@@ -42,7 +44,7 @@ The `requirements.txt` can be seen as any plain requirements setting file presen
 
 ## `main.py`
 
-The `main.py` file is the central component responsible for initiating the tool's execution. It serves as the entry point for running the program, containing all essential logic and any necessary configurations for the tool's behavior.
+The `main.py` file is the central component responsible for initiating the tool's execution. You may imagine this as **tool.py**. It serves as the entry point for running the program, containing all essential logic and any necessary configurations for the tool's behavior.
 
 -   **Custom and Explicit Structure**: `main.py` is designed with a clear and custom structure to explicitly define the workflow of the tool. It ensures that the program’s core functionality is readable, maintainable, and logically organized.
     
