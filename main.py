@@ -20,16 +20,13 @@ def run(json):
 
         Any logic you implement here is going to be copied inside your tool image when 
         you build it using docker build or the provided Makefile.
-
-
-        !!! ATTENTION !!!
-            The MinIO initialization that is given down below should not be deleted or changed.
+        
+            The MinIO initialization that is given down below is an example you may use it or not.
             MinIO access credentials are in the form of <ACCESS ID, ACCESS KEY, SESSION TOKEN>
             and are generated upon the OAuth 2.0 token of the user executing the tool. 
 
             For development purpose you may define your own credentials for your local MinIO 
-            instance by commenting the MinIO init part. 
-        !!!!!!!!!!!!!!!!!
+            instance by commenting the MinIO init part.
 
     """
 
