@@ -12,7 +12,7 @@ endpoint_url="$2"
 id="$3"
 
 # Construct the first curl command with dynamic arguments and store the response in a variable
-response=$(curl -s -L -X GET -H "Authorization: $token" "$endpoint_url/api/v1/task/execution/input_json?id=$id")
+response=$(curl -s -L -X GET -H "Authorization: $token" "$endpoint_url/api/v1/task/$id/input")
 
 echo "$response"
 
@@ -38,7 +38,7 @@ output_json=$(<output.json)  # Read content of output.json file into a variable
 echo "$output_json"
 
 # Replace task_exec_id and output_json with variables
-response=$(curl -s -X POST -H "Content-Type: application/json" -H "Authorization: $token" "$endpoint_url/api/v1/task/execution/output_json" -d "{\"task_exec_id\": \"$id\", \"output_json\": $output_json}")
+response=$(curl -s -X POST -H "Content-Type: application/json" -H "Authorization: $token" "$endpoint_url/api/v1/task/$id/output" -d "{\"task_exec_id\": \"$id\", \"output_json\": $output_json}")
 
 echo "$response"
 
