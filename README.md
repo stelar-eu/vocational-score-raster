@@ -32,6 +32,8 @@ The `run.sh` script serves as a wrapper for executing `main.py`, effectively dec
 
 `run.sh` has a very explicit structure and **should not be modified in any way**. The logic of this script should not concern the tool developer.
 
+**As of November 23, 2024 the run.sh endpoints have been modified to meet the requirements of the refactored STELAR API to be released in early December 2024.**
+
 ## `requirements.txt`
 Inside this file any python libaries should be declared in order to be installed in the tool image when it is built. You may include libraries in the following way:
 
