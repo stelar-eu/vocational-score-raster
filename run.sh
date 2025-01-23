@@ -17,12 +17,10 @@ signature="$4"
 # Secret fields are not accessible without a valid signature.
 response=$(curl -s -L -X GET -H "Authorization: $token" "$endpoint_url/api/v2/tasks/$id/$signature/input")
 
-echo "$response"
-
 # Check if the curl request was successful
 success=$(echo "$response" | jq -r '.success')
 if [ "$success" != "true" ]; then
-    echo "Curl request failed"
+    echo "cURL request to input endpoint V2 has failed!. Aborting..."
     exit 3
 fi
 
@@ -49,8 +47,8 @@ echo "$response"
 # Check if the second curl request was successful
 success=$(echo "$response" | jq -r '.success')
 if [ "$success" != "true" ]; then
-    echo "Second curl request failed"
+    echo "cURL request to output endpoint V2 has failed. Aborting..."
     exit 4
 fi
 
-echo "Second curl request successful"
+echo "Tool outputs were propagated to the API endpoint V2."
