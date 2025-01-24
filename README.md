@@ -123,10 +123,10 @@ The main responsibility of `main.py` is to control the initiation of execution, 
 	```json
 	{
 		"message": "Tool executed successfully!",
-		"output": [{
-			"path": "XXXXXXXXX-bucket/2824af95-1467-4b0b-b12a-21eba4c3ac0f.csv",
-			"name": "List of joined entities"
-		}],
+		"output": {
+			"correlations_file": "XXXXXXXXX-bucket/2824af95-1467-4b0b-b12a-21eba4c3ac0f.csv",
+			"synopses_file": "XXXXXXXXX-bucket/21eba4c3ac0f.csv"			
+		}
 		"metrics": {	
 			"memory_allocated": "2048",
 			"peak_cpu_usage": "2.8"
