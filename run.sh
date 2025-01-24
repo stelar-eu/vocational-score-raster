@@ -15,18 +15,21 @@ signature="$4"
 # Construct the first curl command with dynamic arguments and store the response in a variable
 # Signature is used to gain access to any secret fields defined during the creation of the task.
 # Secret fields are not accessible without a valid signature.
+echo "[STELAR INFO] Performing cURL to the KLMS API to fetch input..."
 response=$(curl -s -L -X GET -H "Authorization: $token" "$endpoint_url/api/v2/tasks/$id/$signature/input")
 
 # Check if the curl request was successful
 success=$(echo "$response" | jq -r '.success')
 if [ "$success" != "true" ]; then
-    echo "cURL request to input endpoint V2 has failed!. Aborting..."
+    echo "[STELAR INFO] cURL request to input endpoint V2 has failed!. Aborting..."
     exit 3
 fi
 
 # Extract the "result" part from the JSON response
 result=$(echo "$response" | jq '.result')
 
+echo "[STELAR INFO] Tool input was fetched from the API endpoint V2."
+printf "\n"
 # Store the "result" part into a file named "input.json"
 echo "$result" > input.json
 
@@ -40,15 +43,19 @@ echo "$output_json"
 
 # Replace task_exec_id and output_json with variables. The signature is used to verify that the tool is authenticated.
 # We will not be using token, as it may expire prior to tool completion.
+printf "\n"
+echo "[STELAR INFO] Performing cURL to the KLMS API to propagate output..."
 response=$(curl -s -X POST -H "Content-Type: application/json" "$endpoint_url/api/v2/tasks/$id/output" -d "{\"signature\": \"$signature\" \"outputs\": $output_json}")
 
+echo "[STELAR INFO] The output request to the KLMS API returned:"
 echo "$response"
+printf "\n"
 
 # Check if the second curl request was successful
 success=$(echo "$response" | jq -r '.success')
 if [ "$success" != "true" ]; then
-    echo "cURL request to output endpoint V2 has failed. Aborting..."
+    echo "[STELAR INFO] cURL request to output endpoint V2 has failed. Aborting..."
     exit 4
 fi
 
-echo "Tool outputs were propagated to the API endpoint V2."
+echo "[STELAR INFO] Tool output was propagated to the API endpoint V2."
