@@ -45,7 +45,7 @@ echo "$output_json"
 # We will not be using token, as it may expire prior to tool completion.
 printf "\n"
 echo "[STELAR INFO] Performing cURL to the KLMS API to propagate output..."
-response=$(curl -s -X POST -H "Content-Type: application/json" "$endpoint_url/api/v2/tasks/$id/output" -d "{\"signature\": \"$signature\" \"output\": $output_json}")
+response=$(curl -s -X POST -H "Content-Type: application/json" "$endpoint_url/api/v2/tasks/$id/$signature/output" -d "$output_json")
 
 echo "[STELAR INFO] The output request to the KLMS API returned:"
 echo "$response"
