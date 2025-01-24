@@ -79,13 +79,26 @@ The main responsibility of `main.py` is to control the initiation of execution, 
  - `sys.argv[1]` : The first argument is the **input parameters in JSON format** fetched from the first cURL request made by the `run.sh` to the API. Its format may be found below:
 	```json
 	{
-		"input": [
-		    "XXXXXXXX-bucket/temp1.csv",
-			"XXXXXXXX-bucket/temp2.csv"
-		],
+		"input": {
+			"any_name": [
+			    "XXXXXXXX-bucket/temp1.csv",
+				"XXXXXXXX-bucket/temp2.csv"
+			],
+			"temp_files": [
+				"XXXXXXXX-bucket/intermediate.json"
+			]
+			
+		},
+		"output": {
+			"correlations_file": "/path/to/write/the/file",
+			"log_file": "/path/to/write/the/file"
+		},
 		"parameters": {
 			"x": 5,
 			"y": 2,
+		},
+		"secrets": {
+			"api_key": "AKIASIOSFODNNEXAMPLE"
 		},
 		"minio": {
 			"endpoint_url": "minio.XXXXXX.gr",
@@ -93,24 +106,32 @@ The main responsibility of `main.py` is to control the initiation of execution, 
 			"key": "XXXXXXXX",
 			"skey": "XXXXXXXX",
 		}
+
 	}
 	```
 
+	**The `input` field contains sets of input files as defined in the tool spec and each field corresponds to an array of paths**
+	
+	**The `output` field provides the paths in which the tool should write its output prior the completion of its execution.**
+	
+	**The `secrets` field contains any sensitive credentials (API Keys, Passwords) that the tool needs. It is accessible only if the task signature, provided by the API during its creation, is included in the request to the KLMS API (For tools running inside the cluster this is ensured by `run.sh`)**
+	
 	**The tool developer may access tool specific parameters that were set during the execution call in the `parameters` field of the input JSON object. The `parameters` field can be as long as the tool need**.
 
 
  - `sys.argv[2]` : The second argument follows the same logic as the first one. **It is the output and metrics produced by the tool**, also in JSON format. This output block will be pushed to the KLMS API by the wrapper `run.sh` script.  Its format may be found below:
 	```json
 	{
-		"message": "Dummy project executed successfully!",
+		"message": "Tool executed successfully!",
 		"output": [{
 			"path": "XXXXXXXXX-bucket/2824af95-1467-4b0b-b12a-21eba4c3ac0f.csv",
 			"name": "List of joined entities"
 		}],
 		"metrics": {	
-			"z": 7
+			"memory_allocated": "2048",
+			"peak_cpu_usage": "2.8"
 		},
-		"status": 200
+		"status": "success"
 	}
 	```
 
