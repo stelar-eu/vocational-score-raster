@@ -59,14 +59,34 @@ def run(json):
 
         An example of parameters for a tool that adds two numbers x,y could be:
         {
-            "docker_image": "petroud/stelar-tuc:foo-tool",
-            "input": [],
+            "input": {
+                "any_name": [
+                    "XXXXXXXX-bucket/temp1.csv",
+                    "XXXXXXXX-bucket/temp2.csv"
+                ],
+                "temp_files": [
+                    "XXXXXXXX-bucket/intermediate.json"
+                ]
+                
+            },
+            "output": {
+                "correlations_file": "/path/to/write/the/file",
+                "log_file": "/path/to/write/the/file"
+            },
             "parameters": {
                 "x": 5,
                 "y": 2,
             },
-            "package_id": package_id,
-            "tags": {}
+            "secrets": {
+                "api_key": "AKIASIOSFODNNEXAMPLE"
+            },
+            "minio": {
+                "endpoint_url": "minio.XXXXXX.gr",
+                "id": "XXXXXXXX",
+                "key": "XXXXXXXX",
+                "skey": "XXXXXXXX",
+            }
+
         }
 
         The parameters JSON field can be as large as the tool needs.
@@ -103,29 +123,29 @@ def run(json):
             An example of the output json is:
 
             {
-                "message": "Dummy project executed successfully!",
-                "output": [{
-                    "path": "XXXXXXXXX-bucket/2824af95-1467-4b0b-b12a-21eba4c3ac0f.csv",
-                    "name": "List of joined entities"
-                    }],
-                "metrics": {
-                    "z": 7,
+                "message": "Tool executed successfully!",
+                "output": {
+                    "correlations_file": "XXXXXXXXX-bucket/2824af95-1467-4b0b-b12a-21eba4c3ac0f.csv",
+                    "synopses_file": "XXXXXXXXX-bucket/21eba4c3ac0f.csv"			
+                }
+                "metrics": {	
+                    "memory_allocated": "2048",
+                    "peak_cpu_usage": "2.8"
                 },
-                "status": 200
+                "status": "success"
             }
 
         """
         json= {
                 'message': 'Tool Executed Succesfully',
-                'output': [], 
+                'output': {}, 
                 'metrics': { 
                     'z': z, 
                 }, 
-                'status': 200,
+                'status': "success",
               }
-        print(json)
-        return json
 
+        return json
     except Exception as e:
         print(traceback.format_exc())
         return {
