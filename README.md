@@ -2,11 +2,11 @@
 
 Generation of spatial raster maps representing vocational scores across different geographic areas, helping to visualize regional strengths in vocational skills.
 
-This version of VSR has been made compatible with the KLMS Tool Template and can be incorporated withing workflows. The tool is invoked in the form of Task within a workflow Process via the respective API call. 
+This version of VSR has been made compatible with the KLMS Tool Template and can be incorporated withing workflows. The tool is invoked in the form of a Task within a workflow Process via the respective API call. 
 
 An example spec for executing an autonomous instance of VSR through the API would be:
 
-```
+```json
 {
     "process_id": "f9645b89-34e4-4de2-8ecd-dc10163d9aed",
     "name": "VSR on 1981-2021",
@@ -46,4 +46,76 @@ An example spec for executing an autonomous instance of VSR through the API woul
         }
     }
 }
+```
+
+## Tool Input 
+At runtime the tool expects the following, translate by the API json: 
 ```json
+
+{
+        "input": {
+            "rasters": [
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmax_max_summer_1981_1990.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmax_max_summer_2001_2010.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmax_max_summer_1991_2000.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmax_max_summer_2011_2021.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmin_min_april_1981_1990.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmin_min_april_2001_2010.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmin_min_april_2011_2021.tif",
+                "s3://abaco-bucket/VOCATIONAL_SCORE/input/Tmin_min_april_1991_2000.tif"
+            ]
+        },
+        "minio": {
+            "endpoint_url": "https://minio.stelar.gr",
+            "id": "XXXXXXXXXXX",
+            "key": "XXXXXXXXXXX",
+            "skey": "XXXXXXXXXXX"
+        },
+        "output": {
+            "scored_files": "s3://abaco-bucket/VOCATIONAL_SCORE/output"
+        },
+        "parameters": {
+            "Tmax_max_summer_1981_1990.tif": {
+                "new_val": 1,
+                "val_max": 28.5,
+                "val_min": 26
+            },
+            "Tmax_max_summer_1991_2000.tif": {
+                "new_val": 1,
+                "val_max": 28.5,
+                "val_min": 26
+            },
+            "Tmax_max_summer_2001_2010.tif": {
+                "new_val": 1,
+                "val_max": 28.5,
+                "val_min": 26
+            },
+            "Tmax_max_summer_2011_2021.tif": {
+                "new_val": 1,
+                "val_max": 28.5,
+                "val_min": 26
+            },
+            "Tmin_min_april_1981_1990.tif": {
+                "new_val": 1,
+                "val_max": 8,
+                "val_min": 0.5
+            },
+            "Tmin_min_april_1991_2000.tif": {
+                "new_val": 1,
+                "val_max": 8,
+                "val_min": 0.5
+            },
+            "Tmin_min_april_2001_2010.tif": {
+                "new_val": 1,
+                "val_max": 8,
+                "val_min": 0.5
+            },
+            "Tmin_min_april_2011_2021.tif": {
+                "new_val": 1,
+                "val_max": 8,
+                "val_min": 0.5
+            }
+        }
+```
+
+
