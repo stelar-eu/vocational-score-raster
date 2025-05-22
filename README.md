@@ -1,6 +1,6 @@
 # Vocational Score Raster
 
-Generation of spatial raster maps representing vocational scores across different geographic areas, helping to visualize regional strengths in vocational skills.
+Generation of spatial raster maps representing vocational scores across different geographic areas, helping to visualize regional strengths in vocational skills. Turn raw-value rasters (e.g., temperature) into a single, interpretable “score” map that answers a yes/no or suitability question.
 
 This version of VSR has been made compatible with the KLMS Tool Template and can be incorporated withing workflows. The tool is invoked in the form of a Task within a workflow Process via the respective API call. 
 
