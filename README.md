@@ -123,7 +123,8 @@ In a nutshell, for each Raster .TIF file provided as input, respective criteria 
 -    `new_val`: (float) Lower bound of the source-pixel value range to accept (inclusive). 
 -    `val_max`: (float) Upper bound of that range (inclusive).	
 -    `val_min`: (float) Score (or weight) to add to every pixel that falls inside that range.
-According to this criteria each raster is re-classified based to the rule "if pixel is inside the ‘comfort’ temperature window, add 1"
+
++According to this criteria each raster is re-classified based to the rule "if pixel is inside the ‘comfort’ temperature window, add 1"
 
 
 
