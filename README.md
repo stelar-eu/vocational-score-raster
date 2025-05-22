@@ -1,8 +1,10 @@
 # Vocational Score Raster
 
-Generation of spatial raster maps representing vocational scores across different geographic areas, helping to visualize regional strengths in vocational skills. Turns raw-value rasters (e.g., temperature) into a single, interpretable “score” map that answers a yes/no or suitability question.
+Generation of spatial raster maps representing vocational scores across different geographic areas, helping to visualize regional strengths in vocational skills. Turn raw-value rasters (e.g., temperature) into a single, interpretable “score” map that answers a yes/no or suitability question.
 
 This version of VSR has been made compatible with the KLMS Tool Template and can be incorporated withing workflows. The tool is invoked in the form of a Task within a workflow Process via the respective API call. 
+
+## Tool Invocation Example
 
 An example spec for executing an autonomous instance of VSR through the API would be:
 
@@ -48,8 +50,8 @@ An example spec for executing an autonomous instance of VSR through the API woul
 }
 ```
 
-## Tool Input 
-At runtime the tool expects the following, translate by the API json: 
+## Tool Input JSON
+At runtime the tool expects the following, translated by the API json: 
 ```json
 
 {
@@ -118,13 +120,48 @@ At runtime the tool expects the following, translate by the API json:
         }
 }
 ```
+### `input`
+
+Provide the raw .TIF file paths under the `rasters` input group. List each file path on a new line or within a JSON array, ensuring that every file has a corresponding entry in the `parameters` field.
+
+### `parameters`
 
 In a nutshell, for each Raster .TIF file provided as input, respective criteria per file are populating the `parameters` field. These criteria include:
 -    `new_val`: (float) Lower bound of the source-pixel value range to accept (inclusive). 
 -    `val_max`: (float) Upper bound of that range (inclusive).	
 -    `val_min`: (float) Score (or weight) to add to every pixel that falls inside that range.
 
-According to this criteria each raster is re-classified based to the rule "if pixel is inside the ‘comfort’ temperature window, add 1"
+According to this criteria each raster is re-classified based to the rule "if pixel is inside the ‘comfort’ temperature window, award with 1"
+
+### `output`
+
+The output field at tool's level defines the output directory where the classified rasters are destined to be written. The tool produces the following output objects:
+- A re-classified `_classificato_test.tif` per input file that lands in the bucket 
+- The `COMBO_OUT.tif`, a running “combo” raster that sums the classified values from all rasters
+
+## Tool Output JSON
+Upon successful execution the tool will propagate the following output to the API. The `metrics` include the coverage (%) of pixels that satisfied the provided parameters for the file and are consired indeed **suitable**.
+```json
+{
+    "message": "Tool Executed Successfully",
+    "output": {
+        "scored_files": "s3://abaco-bucket/VOCATIONAL_SCORE/output"
+    },
+    "metrics": {
+        "Tmax_max_summer_1981_1990.tif_coverage": 19.87,
+        "Tmax_max_summer_1991_2000.tif_coverage": 19.49,
+        "Tmax_max_summer_2001_2010.tif_coverage": 13.33,
+        "Tmax_max_summer_2011_2021.tif_coverage": 13.33,
+        "Tmin_min_april_1981_1990.tif_coverage": 0.0,
+        "Tmin_min_april_1991_2000.tif_coverage": 0.0,
+        "Tmin_min_april_2001_2010.tif_coverage": 0.0,
+        "Tmin_min_april_2011_2021.tif_coverage": 0.0
+    },
+    "status": "success"
+}
+```
 
 
-
+## How to build 
+Alter the `IMGTAG` in Makefile with a repository from your Image Registry and hit 
+`make` in your terminal within the same directory.

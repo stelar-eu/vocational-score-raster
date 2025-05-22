@@ -88,7 +88,7 @@ def run(json_input):
 
                 # update profile (dtype + nodata + compression)
                 profile.update(
-                    dtype=rasterio.float32, nodata=OUTPUT_NODATA, compress="lzw"
+                    dtype=rasterio.float32, nodata=OUTPUT_NODATA
                 )
 
             # write classified raster locally
