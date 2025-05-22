@@ -44,9 +44,6 @@ An example spec for executing an autonomous instance of VSR through the API woul
                 "relation": "raster"
             }
         }
-    },
-    "secrets": {
-        "hello":"world"
     }
 }
 ```json
