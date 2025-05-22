@@ -1,160 +1,155 @@
 import json
 import sys
 import traceback
+import os
+import numpy as np
+import rasterio
 from utils.mclient import MinioClient
 
-# Here you may define the imports your tool needs...
-# import pandas as pd
-# import numpy as np
-# ...
 
-def run(json):
+# ------------------------------------------------------------------
+# CONFIG – keep the nodata value from the original desktop script
+# ------------------------------------------------------------------
+OUTPUT_NODATA = -9999
+LOCAL_WORKDIR = "/tmp/voc_score"  # local scratch
+LOCAL_IN_DIR = os.path.join(LOCAL_WORKDIR, "in")
+LOCAL_OUT_DIR = os.path.join(LOCAL_WORKDIR, "out")
+os.makedirs(LOCAL_IN_DIR, exist_ok=True)
+os.makedirs(LOCAL_OUT_DIR, exist_ok=True)
 
-    """
-        This is the core method that initiates tool .py files execution. 
-        It can be as large and complex as the tools needs. In this file you may import, call,
-        and define any lib, method, variable or function you need for you tool execution.
-        Any specific files you need can be in the same directory with this main.py or in subdirs
-        with appropriate import statements with respect to dir structure.
 
-        Any logic you implement here is going to be copied inside your tool image when 
-        you build it using docker build or the provided Makefile.
-        
-            The MinIO initialization that is given down below is an example you may use it or not.
-            MinIO access credentials are in the form of <ACCESS ID, ACCESS KEY, SESSION TOKEN>
-            and are generated upon the OAuth 2.0 token of the user executing the tool. 
-
-            For development purpose you may define your own credentials for your local MinIO 
-            instance by commenting the MinIO init part.
-
-    """
-
+def run(json_input):
     try:
-        """
-        Init a MinIO Client using the custom STELAR MinIO util file.
+        # 1. ────────── MinIO session ──────────
+        minio_id = json_input["minio"]["id"]
+        minio_key = json_input["minio"]["key"]
+        minio_skey = json_input["minio"]["skey"]
+        minio_endpoint = json_input["minio"]["endpoint_url"]
 
-        We access the MinIO credentials from the JSON field named 'minio' which 
-        was acquired along the tool parameters.
+        mc = MinioClient(
+            minio_endpoint, minio_id, minio_key, secure=True, session_token=minio_skey
+        )
 
-        This credentials can be used for tool specific access too wherever needed
-        inside this main.py file.
+        # 2. ────────── IO paths & criteria ──────────
+        input_paths = json_input["input"]["rasters"]  # list of s3://… rasters
+        output_folder = json_input["output"]["scored_files"].rstrip(
+            "/"
+        )  # s3:// bucket/folder
+        criteria_raw = json_input["parameters"]  # {filename : {...} }
 
-        """
-        ################################## MINIO INIT #################################
-        minio_id = json['minio']['id']
-        minio_key = json['minio']['key']
-        minio_skey = json['minio']['skey']
-        minio_endpoint = json['minio']['endpoint_url']
-        
-        mc = MinioClient(minio_id, minio_key, minio_skey, minio_endpoint)
+        # Transform criteria dict so each filename maps to a **list** of criteria,
+        # allowing multi-row cases exactly like the CSV version.
+        criteria = {}
+        for fname, spec in criteria_raw.items():
+            if isinstance(spec, list):
+                criteria[fname] = spec
+            else:
+                criteria[fname] = [spec]  # wrap single row in list
 
-        # It is strongly suggested to use the get_object and put_object methods of the MinioClient
-        # as they handle input paths provided by STELAR API appropriately. (S3 like paths)
-        ###############################################################################
+        # storage for global combo
+        combo_array = None
+        combo_profile = None
+        metrics = {}
 
+        # 3. ────────── loop over rasters ──────────
+        for fname, crit_list in criteria.items():
 
-        """
-        Acquire tool specific parameters from json['parameters] which was given by the 
-        KLMS Data API during the creation of the Tool Execution Task.
+            # locate full S3 path for this raster
+            s3_path = next((p for p in input_paths if p.endswith(fname)), None)
+            if s3_path is None:
+                print(f"[WARN] {fname} missing in input list - skipped.")
+                continue
 
-        An example of parameters for a tool that adds two numbers x,y could be:
-        {
-            "inputs": {
-                "any_name": [
-                    "XXXXXXXX-bucket/temp1.csv",
-                    "XXXXXXXX-bucket/temp2.csv"
-                ],
-                "temp_files": [
-                    "XXXXXXXX-bucket/intermediate.json"
-                ]
-                
+            # download to local cache
+            local_in = os.path.join(LOCAL_IN_DIR, fname)
+            mc.get_object(s3_path=s3_path, local_path=local_in)
+
+            # open raster
+            with rasterio.open(local_in) as src:
+                profile = src.profile
+                data = src.read(1).astype(float)
+
+                # prep output & mask arrays
+                out_arr = np.zeros_like(data, dtype=float)
+                mask_tot = np.zeros_like(data, dtype=bool)
+
+                # apply every criterion for this raster
+                for c in crit_list:
+                    vmin = float(c["val_min"])
+                    vmax = float(c["val_max"])
+                    nval = float(c["new_val"])
+
+                    m = (data >= vmin) & (data <= vmax)
+                    out_arr[m] += nval
+                    mask_tot |= m
+
+                # set nodata where no rule matched
+                out_arr[~mask_tot] = OUTPUT_NODATA
+
+                # update profile (dtype + nodata + compression)
+                profile.update(
+                    dtype=rasterio.float32, nodata=OUTPUT_NODATA, compress="lzw"
+                )
+
+            # write classified raster locally
+            base, ext = os.path.splitext(fname)
+            class_name = f"{base}_classificato_test{ext}"
+            local_out = os.path.join(LOCAL_OUT_DIR, class_name)
+
+            with rasterio.open(local_out, "w", **profile) as dst:
+                dst.write(out_arr.astype(np.float32), 1)
+
+            # upload classified raster
+            mc.put_object(s3_path=f"{output_folder}/{class_name}", file_path=local_out)
+
+            # per-file metric (coverage)
+            metrics[f"{fname}_coverage"] = round(mask_tot.sum() / data.size * 100, 2)
+
+            # update combo
+            if combo_array is None:
+                combo_array = np.where(out_arr == OUTPUT_NODATA, 0, out_arr)
+                combo_profile = profile.copy()
+            else:
+                valid = out_arr != OUTPUT_NODATA
+                combo_array[valid] += out_arr[valid]
+
+        # 4. ────────── write + upload COMBO_OUT ──────────
+        if combo_array is not None:
+            combo_profile.update(nodata=OUTPUT_NODATA)
+            combo_local = os.path.join(LOCAL_OUT_DIR, "COMBO_OUT.tif")
+            with rasterio.open(combo_local, "w", **combo_profile) as dst:
+                dst.write(combo_array.astype(np.float32), 1)
+
+            mc.put_object(
+                s3_path=f"{output_folder}/COMBO_OUT.tif", file_path=combo_local
+            )
+        else:
+            print("⚠️  No raster processed – COMBO_OUT not created.")
+
+        # 5. ────────── return tool response ──────────
+        return {
+            "message": "Tool Executed Successfully",
+            "output": {
+                "scored_files": output_folder  # root with *_classificato + COMBO_OUT
             },
-            "outputs": {
-                "correlations_file": "/path/to/write/the/file",
-                "log_file": "/path/to/write/the/file"
-            },
-            "parameters": {
-                "x": 5,
-                "y": 2,
-            },
-            "secrets": {
-                "api_key": "AKIASIOSFODNNEXAMPLE"
-            },
-            "minio": {
-                "endpoint_url": "minio.XXXXXX.gr",
-                "id": "XXXXXXXX",
-                "key": "XXXXXXXX",
-                "skey": "XXXXXXXX",
-            }
-
+            "metrics": metrics,
+            "status": "success",
         }
 
-        The parameters JSON field can be as large as the tool needs.
-
-        For our simple example in this main.py we would access x,y as:
-            x = json['parameters']['x']
-            y = json['parameters']['y']
-        """        
-        x = json['parameters']['x'] 
-        y = json['parameters']['y']
-
-
-        """
-
-            Here you may implement the execution logic of your tool. At this point you have available:
-
-                - Tool specific parameters from json['parameters']
-                - A client for MinIO acccess named 'mc' with method putObject(...) and getObject(...)
-        """
-
-        ##### Tool Logic #####
-        z=x+y
-
-        """
-            This json should contain any output of your tool that you consider valuable. Metrics field affects
-            the metadata of the task execution. Status can be conventionally linked to HTTP status codes in order
-            to mark success or error states.
-
-            Output contains the resource ids from MinIO in which the valuable output data of your tool should be written
-            An example of the output json is:
-
-            {
-                "message": "Tool executed successfully!",
-                "outputs": {
-                    "correlations_file": "XXXXXXXXX-bucket/2824af95-1467-4b0b-b12a-21eba4c3ac0f.csv",
-                    "synopses_file": "XXXXXXXXX-bucket/21eba4c3ac0f.csv"			
-                }
-                "metrics": {	
-                    "memory_allocated": "2048",
-                    "peak_cpu_usage": "2.8"
-                },
-                "status": "success"
-            }
-
-        """
-        json= {
-                'message': 'Tool Executed Succesfully',
-                'outputs': {}, 
-                'metrics': { 
-                    'z': z, 
-                }, 
-                'status': "success",
-              }
-
-        return json
-    except Exception as e:
+    except Exception:
         print(traceback.format_exc())
         return {
-            'message': 'An error occurred during data processing.',
-            'error': traceback.format_exc(),
-            'status': 500
+            "message": "An error occurred during data processing.",
+            "error": traceback.format_exc(),
+            "status": 500,
         }
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     if len(sys.argv) != 3:
-        raise ValueError("Please provide 2 files.")
-    with open(sys.argv[1]) as o:
-        j = json.load(o)
-    response = run(j)
-    with open(sys.argv[2], 'w') as o:
-        o.write(json.dumps(response, indent=4))
+        raise ValueError("Please provide 2 files (input.json output.json).")
+    with open(sys.argv[1]) as f_in:
+        task_json = json.load(f_in)
+    result = run(task_json)
+    with open(sys.argv[2], "w") as f_out:
+        json.dump(result, f_out, indent=4)

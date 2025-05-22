@@ -1,6 +1,6 @@
 
 DOCKER=docker
-IMGTAG=yourusername/yourimagereponame:yourversiontag
+IMGTAG=petroud/vsr:latest
 IMGPATH=.
 DOCKERFILE=$(IMGPATH)/Dockerfile
 

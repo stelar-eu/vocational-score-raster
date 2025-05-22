@@ -9,6 +9,7 @@ Project Info: https://stelar-project.eu/
 
 from minio import Minio
 import os
+import re
 
 class MinioClient:
     def __init__(self, endpoint, access_key, secret_key, secure=True, session_token=None):
@@ -21,6 +22,9 @@ class MinioClient:
             secure (bool, optional): Indicates whether to use HTTPS (True) or HTTP (False). Defaults to True.
             session_token (str, optional): An optional session token for temporary credentials. Defaults to None.
         """
+        # Exclude any "http://" or "https://" prefix from the endpoint
+        endpoint = re.sub(r"^https?://", "", endpoint)
+
         self.client = Minio(
             endpoint,
             access_key=access_key,
